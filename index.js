@@ -12,7 +12,7 @@ app.use(bodyParser.json()); // Analisa o corpo da requisição como JSON
 
 // Rota inicial do servidor
 app.get('/', (req, res) => {
-    res.send('Bem-vindo à API de Medicamentos!'); // Mensagem de boas-vindas
+    res.send('Bem-vindo!'); // Mensagem de boas-vindas
 });
 
 // Usando as rotas de medicamentos
