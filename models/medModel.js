@@ -1,43 +1,80 @@
-const { Pool } = require('pg'); // Importando o pacote pg para conexão com PostgreSQL
+const { Pool } = require('pg');
 
 // Configurações do banco de dados
 const pool = new Pool({
-    user: 'usuario', // Substitua pelo seu usuário do PostgreSQL (se tiver padrao vai ser postgres msm)
+    user: 'postgres',
     host: 'localhost',
-    database: 'med_database', // Substitua pelo nome do banco de dados
-    password: 'senha', // Substitua pela sua senha do PostgreSQL
-    port: 5432, // Porta padrão do PostgreSQL
+    database: 'med_database',
+    password: '2528',
+    port: 5432,
 });
 
-let medicamentos = []; // Array para armazenar medicamentos carregados do banco de dados
+let medicamentos = []; // Array para armazenar medicamentos carregados do banco
 
-// Função para carregar medicamentos da tabela existente
+// Carregar medicamentos da tabela existente
 const carregarMedicamentos = async () => {
-    const res = await pool.query('SELECT * FROM medicamentos'); // Consulta os medicamentos
-    medicamentos = res.rows; // Armazena os resultados no array medicamentos
+    const res = await pool.query('SELECT * FROM medicamentos');
+    medicamentos = res.rows;
 };
 
-// Chama a função para carregar os medicamentos ao iniciar
 carregarMedicamentos();
 
-// Função para buscar medicamentos que correspondem ao termo de busca
+// Função para buscar medicamentos na base geral
 const buscarMedicamentos = (termo) => {
-    if (!termo) return medicamentos; // Retorna todos se não houver termo
+    if (!termo) return medicamentos;
     return medicamentos.filter(medicamento =>
-        medicamento.nome_produto.toLowerCase().includes(termo.toLowerCase()) // Filtra pelo nome
+        medicamento.nome_produto.toLowerCase().includes(termo.toLowerCase())
     );
 };
 
-// Função para adicionar medicamento do cliente na nova tabela
+// Função para buscar medicamentos do cliente
+const buscarMedicamentosCliente = async () => {
+    const res = await pool.query('SELECT * FROM medicamentos_cliente');
+    return res.rows;
+};
+
+// Função para adicionar medicamentos do cliente
 const adicionarMedicamentoCliente = async (nome, quantidade, dataValidade) => {
     const query = `
         INSERT INTO medicamentos_cliente (nome, quantidade, data_validade)
-        VALUES ($1, $2, $3) RETURNING *; -- Insere e retorna o medicamento adicionado
+        VALUES ($1, $2, $3) RETURNING *;
     `;
-    const values = [nome, quantidade, dataValidade]; // Valores a serem inseridos
-    const res = await pool.query(query, values); // Executa a consulta no banco
-    return res.rows[0]; // Retorna o medicamento adicionado
+    const values = [nome, quantidade, dataValidade];
+    const res = await pool.query(query, values);
+    return res.rows[0];
 };
 
-// Exportar as funções para serem usadas em outros arquivos
-module.exports = { buscarMedicamentos, adicionarMedicamentoCliente };
+// Função para buscar um medicamento do cliente pelo ID
+const buscarMedicamentoPorId = async (id) => {
+    const res = await pool.query('SELECT * FROM medicamentos_cliente WHERE id = $1', [id]);
+    return res.rows[0];
+};
+
+// Função para editar medicamento do cliente
+const editarMedicamentoCliente = async (id, nome, quantidade, dataValidade) => {
+    const query = `
+        UPDATE medicamentos_cliente
+        SET nome = $1, quantidade = $2, data_validade = $3
+        WHERE id = $4 RETURNING *;
+    `;
+    const values = [nome, quantidade, dataValidade, id];
+    const res = await pool.query(query, values);
+    return res.rows[0];
+};
+
+// Função para deletar medicamento do cliente
+const deletarMedicamentoCliente = async (id) => {
+    const query = 'DELETE FROM medicamentos_cliente WHERE id = $1 RETURNING *;';
+    const values = [id];
+    const res = await pool.query(query, values);
+    return res.rows[0];
+};
+
+module.exports = {
+    buscarMedicamentos,
+    buscarMedicamentosCliente,
+    adicionarMedicamentoCliente,
+    buscarMedicamentoPorId,
+    editarMedicamentoCliente,
+    deletarMedicamentoCliente,
+};
