@@ -2,10 +2,22 @@ const express = require('express');
 const medControle = require('../controllers/medControle');
 const router = express.Router();
 
-// Rota para buscar medicamentos
-router.get('/', medControle.getMedicamentos); // Chama a função para buscar medicamentos
+// Rota para buscar medicamentos gerais
+router.get('/', medControle.getMedicamentos);
 
 // Rota para adicionar medicamento do cliente
-router.post('/adicionar', medControle.addMedicamento); // Chama a função para adicionar medicamento
+router.post('/adicionar', medControle.addMedicamento);
 
-module.exports = router; // Exporta as rotas para serem usadas no servidor
+// Rota para listar os medicamentos do cliente
+router.get('/cliente', medControle.getMedicamentosCliente);
+
+// Rota para buscar um medicamento do cliente por ID
+router.get('/cliente/:id', medControle.getMedicamentoClientePorId);
+
+// Rota para editar medicamento do cliente
+router.put('/cliente/:id', medControle.updateMedicamentoCliente);
+
+// Rota para deletar medicamento do cliente
+router.delete('/cliente/:id', medControle.deleteMedicamentoCliente);
+
+module.exports = router;
