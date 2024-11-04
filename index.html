@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Testar API de Medicamentos</title>
+    <title>Gerenciamento de Medicamentos</title>
 </head>
 <body>
     <h1>Adicionar Medicamento</h1>
@@ -14,45 +14,42 @@
         <button type="submit">Adicionar</button>
     </form>
 
-    <h1>Buscar Medicamento</h1>
+    <h1>Buscar Medicamento Geral</h1>
     <input type="text" id="termoBusca" placeholder="Digite o nome do medicamento">
     <button id="btnBuscar">Buscar</button>
     
     <h2>Resultados da Busca:</h2>
     <pre id="resultadosBusca"></pre>
 
-    <script>
-        // Adiciona um evento ao formulário de adição de medicamentos
-        document.getElementById('medForm').addEventListener('submit', async (event) => {
-            event.preventDefault(); // Impede o envio padrão do formulário
-            
-            const nome = document.getElementById('nome').value; // Captura o nome do medicamento
-            const quantidade = document.getElementById('quantidade').value; // Captura a quantidade
-            const dataValidade = document.getElementById('dataValidade').value; // Captura a data de validade
+    <h1>Medicamentos do Cliente</h1>
+    <a href="medicamentos_cliente.html">Gerenciar Medicamentos do Cliente</a>
 
-            // Envia os dados para o backend
+    <script>
+        // Envio do formulário para adicionar medicamento
+        document.getElementById('medForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const nome = document.getElementById('nome').value;
+            const quantidade = document.getElementById('quantidade').value;
+            const dataValidade = document.getElementById('dataValidade').value;
+
             const response = await fetch('http://localhost:3000/medicamentos/adicionar', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ nome, quantidade, dataValidade }), // Converte os dados para JSON
+                body: JSON.stringify({ nome, quantidade, dataValidade }),
             });
 
-            const data = await response.json(); // Captura a resposta do servidor
-            alert(JSON.stringify(data)); // Exibe a resposta em um alerta
+            const data = await response.json();
+            alert(JSON.stringify(data));
         });
 
-        // Adiciona um evento ao botão de busca
+        // Função de busca
         document.getElementById('btnBuscar').addEventListener('click', async () => {
-            const termo = document.getElementById('termoBusca').value; // Captura o termo de busca
-
-            // Faz a requisição para buscar medicamentos
+            const termo = document.getElementById('termoBusca').value;
             const response = await fetch(`http://localhost:3000/medicamentos?termo=${termo}`);
-            const resultados = await response.json(); // Captura os resultados
-
-            const resultadosContainer = document.getElementById('resultadosBusca');
-            resultadosContainer.textContent = JSON.stringify(resultados, null, 2); // Exibe os resultados no formato JSON
+            const resultados = await response.json();
+            document.getElementById('resultadosBusca').textContent = JSON.stringify(resultados, null, 2);
         });
     </script>
 </body>
