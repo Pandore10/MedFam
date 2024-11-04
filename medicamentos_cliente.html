@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Medicamentos do Cliente</title>
+</head>
+<body>
+    <h1>Medicamentos do Cliente</h1>
+    <ul id="listaMedicamentos"></ul>
+
+    <h2>Editar Medicamento</h2>
+    <form id="editForm" style="display: none;">
+        <input type="text" id="editNome" placeholder="Nome do Medicamento" required>
+        <input type="number" id="editQuantidade" placeholder="Quantidade" min="1" required>
+        <input type="text" id="editDataValidade" placeholder="Data de Validade (DD-MM-AAAA)" required>
+        <button type="submit">Salvar Alterações</button>
+    </form>
+
+    <script>
+        // Função para formatar a data para o formato DD-MM-AAAA
+        const formatarData = (data) => {
+            const partes = data.split('T')[0].split('-');
+            return `${partes[2]}-${partes[1]}-${partes[0]}`;
+        };
+
+        // Função para carregar e listar os medicamentos do cliente
+        const carregarMedicamentos = async () => {
+            const response = await fetch('http://localhost:3000/medicamentos/cliente');
+            const medicamentos = await response.json();
+            const lista = document.getElementById('listaMedicamentos');
+            lista.innerHTML = '';
+            medicamentos.forEach(med => {
+                const li = document.createElement('li');
+                li.textContent = `${med.nome} - Quantidade: ${med.quantidade} - Validade: ${formatarData(med.data_validade)}`;
+                
+                const btnEditar = document.createElement('button');
+                btnEditar.textContent = 'Editar';
+                btnEditar.onclick = () => editarMedicamento(med.id);
+                
+                const btnExcluir = document.createElement('button');
+                btnExcluir.textContent = 'Excluir';
+                btnExcluir.onclick = () => confirmarExcluir(med.id);
+                
+                li.appendChild(btnEditar);
+                li.appendChild(btnExcluir);
+                lista.appendChild(li);
+            });
+        };
+
+        // Função para editar medicamento
+        const editarMedicamento = async (id) => {
+            const response = await fetch(`http://localhost:3000/medicamentos/cliente/${id}`);
+            const medicamento = await response.json();
+            document.getElementById('editNome').value = medicamento.nome;
+            document.getElementById('editQuantidade').value = medicamento.quantidade;
+            document.getElementById('editDataValidade').value = formatarData(medicamento.data_validade);
+            document.getElementById('editForm').style.display = 'block';
+
+            document.getElementById('editForm').onsubmit = async (event) => {
+                event.preventDefault();
+                await fetch(`http://localhost:3000/medicamentos/cliente/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nome: document.getElementById('editNome').value,
+                        quantidade: document.getElementById('editQuantidade').value,
+                        dataValidade: document.getElementById('editDataValidade').value,
+                    }),
+                });
+                carregarMedicamentos();
+                document.getElementById('editForm').reset();
+                document.getElementById('editForm').style.display = 'none';
+            };
+        };
+
+        // Função para confirmar a exclusão do medicamento
+        const confirmarExcluir = (id) => {
+            if (confirm('Você realmente deseja excluir este medicamento?')) {
+                excluirMedicamento(id);
+            }
+        };
+
+        // Função para excluir medicamento
+        const excluirMedicamento = async (id) => {
+            await fetch(`http://localhost:3000/medicamentos/cliente/${id}`, { method: 'DELETE' });
+            carregarMedicamentos();
+        };
+
+        // Carregar medicamentos ao iniciar a página
+        carregarMedicamentos();
+    </script>
+</body>
+</html>
