@@ -40,9 +40,12 @@ exports.login = async (req, res) => {
         const userQuery = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         const user = userQuery.rows[0];
 
+        // Isso é problema fela da pota
+        // TODO: Consertar essa bosta
         if (user && bcrypt.compare(password, user.password)) {
             const token = jwt.sign({ userID: user.id }, 'seu segredo', { expiresIn: '1h' });
             res.json({ token });
+            console.log("Suco de caju");
         } else {
             res.status(401).json({ message: 'Credencias invalidas' });
         }
