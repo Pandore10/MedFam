@@ -40,7 +40,9 @@ exports.login = async (req, res) => {
         const userQuery = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         const user = userQuery.rows[0];
 
-        if (user && bcrypt.compare(password, user.password)) {
+        // Isso é problema fela da pota
+        // TODO: Consertar essa bosta
+        if (user && await bcrypt.compare(password, user.password)) {
             const token = jwt.sign({ userID: user.id }, 'seu segredo', { expiresIn: '1h' });
             res.json({ token });
         } else {
