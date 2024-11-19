@@ -92,3 +92,38 @@ exports.deleteMedicamentoCliente = async (req, res) => {
         res.status(500).json({ error: 'Erro ao excluir medicamento.' });
     }
 };
+
+// Endpoints de Notificações de Estoque e Validade
+
+// Endpoint para verificar e enviar notificações de estoque baixo
+exports.notificarEstoqueBaixo = async (req, res) => {
+    try {
+        // Verifica medicamentos com estoque baixo (menos de 3 unidades)
+        const medicamentosBaixoEstoque = await buscarMedicamentosCliente();
+        const medicamentosNotificados = medicamentosBaixoEstoque.filter(medicamento => medicamento.quantidade <= 3);
+        
+        // Envia a resposta com os medicamentos de estoque baixo
+        res.json(medicamentosNotificados);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao verificar estoque baixo.' });
+    }
+};
+
+// Endpoint para verificar e enviar notificações de validade próxima
+exports.notificarValidadeProxima = async (req, res) => {
+    try {
+        // Verifica medicamentos cuja validade está para vencer em 1 semana
+        const medicamentosValidadeProxima = await buscarMedicamentosCliente();
+        const medicamentosNotificados = medicamentosValidadeProxima.filter(medicamento => {
+            const validade = new Date(medicamento.data_validade);
+            const hoje = new Date();
+            const diferencaEmDias = (validade - hoje) / (1000 * 3600 * 24);
+            return diferencaEmDias <= 7 && diferencaEmDias >= 0; // Validade próxima (até 7 dias)
+        });
+
+        // Envia a resposta com os medicamentos com validade próxima
+        res.json(medicamentosNotificados);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao verificar validade próxima.' });
+    }
+};
