@@ -5,7 +5,7 @@ const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
     database: 'med_database',
-    password: '2528',
+    password: '',
     port: 5432,
 });
 
@@ -35,10 +35,9 @@ const buscarMedicamentosCliente = async () => {
 
 // Função para adicionar medicamentos do cliente
 const adicionarMedicamentoCliente = async (nome, quantidade, dataValidade) => {
-    const query = `
-        INSERT INTO medicamentos_cliente (nome, quantidade, data_validade)
-        VALUES ($1, $2, $3) RETURNING *;
-    `;
+    const query = 
+        `INSERT INTO medicamentos_cliente (nome, quantidade, data_validade)
+        VALUES ($1, $2, $3) RETURNING *;`;
     const values = [nome, quantidade, dataValidade];
     const res = await pool.query(query, values);
     return res.rows[0];
@@ -52,11 +51,10 @@ const buscarMedicamentoPorId = async (id) => {
 
 // Função para editar medicamento do cliente
 const editarMedicamentoCliente = async (id, nome, quantidade, dataValidade) => {
-    const query = `
-        UPDATE medicamentos_cliente
+    const query = 
+        `UPDATE medicamentos_cliente
         SET nome = $1, quantidade = $2, data_validade = $3
-        WHERE id = $4 RETURNING *;
-    `;
+        WHERE id = $4 RETURNING *;`;
     const values = [nome, quantidade, dataValidade, id];
     const res = await pool.query(query, values);
     return res.rows[0];
