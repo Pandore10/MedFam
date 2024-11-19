@@ -20,4 +20,10 @@ router.put('/cliente/:id', medControle.updateMedicamentoCliente);
 // Rota para deletar medicamento do cliente
 router.delete('/cliente/:id', medControle.deleteMedicamentoCliente);
 
+// Rota para notificar sobre medicamentos com estoque baixo
+router.get('/notificacao/estoque', medControle.notificarEstoqueBaixo);
+
+// Rota para notificar sobre medicamentos com validade próxima
+router.get('/notificacao/validade', medControle.notificarValidadeProxima);
+
 module.exports = router;
