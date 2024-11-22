@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
-    database: 'med_database',
+    database: 'medDatabase',
     password: '2528',
     port: 5432,
 });
@@ -40,8 +40,6 @@ exports.login = async (req, res) => {
         const userQuery = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         const user = userQuery.rows[0];
 
-        // Isso é problema fela da pota
-        // TODO: Consertar essa bosta
         if (user && await bcrypt.compare(password, user.password)) {
             const token = jwt.sign({ userID: user.id }, 'seu segredo', { expiresIn: '1h' });
             res.json({ token });
@@ -54,3 +52,21 @@ exports.login = async (req, res) => {
     }
 }
 
+exports.autenticarToken = (req, res, next) => {
+    const token = req.headers['authorization'];
+
+    if (!token) {
+        return res.status(403).json({ message: 'Token não fornecido' });
+    }
+
+    const tokenLimpo = token.startsWith('Bearer ') ? token.slice(7) : token;
+
+    jwt.verify(tokenLimpo, 'seu segredo', (err, decoded) => {
+        if (err) {
+            return res.status(403).json({ message: 'Token invalido ou expirado'});
+        }
+
+        req.user = { userID: decoded.userID };
+        next();
+    });
+};

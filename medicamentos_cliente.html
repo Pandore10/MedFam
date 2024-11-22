@@ -27,52 +27,81 @@
 
         // Função para carregar e listar os medicamentos do cliente
         const carregarMedicamentos = async () => {
-            const response = await fetch('http://localhost:3000/medicamentos/cliente');
-            const medicamentos = await response.json();
-            const lista = document.getElementById('listaMedicamentos');
-            lista.innerHTML = '';
-            medicamentos.forEach(med => {
-                const li = document.createElement('li');
-                li.textContent = `${med.nome} - Quantidade: ${med.quantidade} - Validade: ${formatarData(med.data_validade)}`;
-                
-                const btnEditar = document.createElement('button');
-                btnEditar.textContent = 'Editar';
-                btnEditar.onclick = () => editarMedicamento(med.id);
-                
-                const btnExcluir = document.createElement('button');
-                btnExcluir.textContent = 'Excluir';
-                btnExcluir.onclick = () => confirmarExcluir(med.id);
-                
-                li.appendChild(btnEditar);
-                li.appendChild(btnExcluir);
-                lista.appendChild(li);
+            const token = localStorage.getItem('authToken');
+
+            const response = await fetch('http://localhost:3000/medicamentos/cliente', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
             });
+
+            if (response.ok) {
+                const medicamentos = await response.json();
+                const lista = document.getElementById('listaMedicamentos');
+                lista.innerHTML = '';
+                medicamentos.forEach(med => {
+                    const li = document.createElement('li');
+                    li.textContent = `${med.nome} - Quantidade: ${med.quantidade} - Validade: ${formatarData(med.data_validade)}`;
+                
+                    const btnEditar = document.createElement('button');
+                    btnEditar.textContent = 'Editar';
+                    btnEditar.onclick = () => editarMedicamento(med.id);
+                
+                    const btnExcluir = document.createElement('button');
+                    btnExcluir.textContent = 'Excluir';
+                    btnExcluir.onclick = () => confirmarExcluir(med.id);
+                
+                    li.appendChild(btnEditar);
+                    li.appendChild(btnExcluir);
+                    lista.appendChild(li);
+                });
+            } else {
+                alert('Erro ao carregar medicamentos. Verifique sua autenticação.');
+            }
         };
 
         // Função para editar medicamento
         const editarMedicamento = async (id) => {
-            const response = await fetch(`http://localhost:3000/medicamentos/cliente/${id}`);
-            const medicamento = await response.json();
-            document.getElementById('editNome').value = medicamento.nome;
-            document.getElementById('editQuantidade').value = medicamento.quantidade;
-            document.getElementById('editDataValidade').value = formatarData(medicamento.data_validade);
-            document.getElementById('editForm').style.display = 'block';
+            const token = localStorage.getItem('authToken');
 
-            document.getElementById('editForm').onsubmit = async (event) => {
-                event.preventDefault();
-                await fetch(`http://localhost:3000/medicamentos/cliente/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        nome: document.getElementById('editNome').value,
-                        quantidade: document.getElementById('editQuantidade').value,
-                        dataValidade: document.getElementById('editDataValidade').value,
-                    }),
-                });
-                carregarMedicamentos();
-                document.getElementById('editForm').reset();
-                document.getElementById('editForm').style.display = 'none';
-            };
+            const response = await fetch(`http://localhost:3000/medicamentos/cliente/${id}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+
+            if (response.ok) {
+                const medicamento = await response.json();
+                document.getElementById('editNome').value = medicamento.nome;
+                document.getElementById('editQuantidade').value = medicamento.quantidade;
+                document.getElementById('editDataValidade').value = formatarData(medicamento.data_validade);
+                document.getElementById('editForm').style.display = 'block';
+
+                document.getElementById('editForm').onsubmit = async (event) => {
+                    event.preventDefault();
+                    await fetch(`http://localhost:3000/medicamentos/cliente/${id}`, {
+                        method: 'PUT',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                         },
+
+                        body: JSON.stringify({
+                            nome: document.getElementById('editNome').value,
+                            quantidade: document.getElementById('editQuantidade').value,
+                            dataValidade: document.getElementById('editDataValidade').value,
+                        }),
+                    });
+                    carregarMedicamentos();
+                    document.getElementById('editForm').reset();
+                    document.getElementById('editForm').style.display = 'none';
+                };
+            } else {
+                alert('Erro ao carregar medicamentos. Verifique sua autenticação.');
+            }
+            
         };
 
         // Função para confirmar a exclusão do medicamento
@@ -84,7 +113,13 @@
 
         // Função para excluir medicamento
         const excluirMedicamento = async (id) => {
-            await fetch(`http://localhost:3000/medicamentos/cliente/${id}`, { method: 'DELETE' });
+            const token = localStorage.getItem('authToken');
+            await fetch(`http://localhost:3000/medicamentos/cliente/${id}`, { 
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
             carregarMedicamentos();
         };
 

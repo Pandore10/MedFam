@@ -17,6 +17,8 @@ exports.getMedicamentos = (req, res) => {
 // Endpoint para adicionar medicamento do cliente
 exports.addMedicamento = async (req, res) => {
     const { nome, quantidade, dataValidade } = req.body;
+    const userID = req.user.userID;
+
     if (!nome || !quantidade || !dataValidade) {
         return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
     }
@@ -27,7 +29,7 @@ exports.addMedicamento = async (req, res) => {
     }
 
     try {
-        const resultado = await adicionarMedicamentoCliente(nome, quantidade, dataValidade);
+        const resultado = await adicionarMedicamentoCliente(userID, nome, quantidade, dataValidade);
         res.status(201).json(resultado);
     } catch (error) {
         console.error(error);
@@ -38,7 +40,8 @@ exports.addMedicamento = async (req, res) => {
 // Endpoint para buscar medicamentos do cliente
 exports.getMedicamentosCliente = async (req, res) => {
     try {
-        const medicamentos = await buscarMedicamentosCliente();
+        const userID = req.user.userID;
+        const medicamentos = await buscarMedicamentosCliente(userID);
         res.json(medicamentos);
     } catch (error) {
         res.status(500).json({ error: 'Erro ao buscar medicamentos do cliente.' });

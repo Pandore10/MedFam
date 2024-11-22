@@ -6,6 +6,7 @@
     <title>Gerenciamento de Medicamentos</title>
 </head>
 <body>
+    <button onclick="logout()">Logout</button>
     <h1>Adicionar Medicamento</h1>
     <form id="medForm">
         <input type="text" id="nome" placeholder="Nome do Medicamento" required>
@@ -31,11 +32,13 @@
             const nome = document.getElementById('nome').value;
             const quantidade = document.getElementById('quantidade').value;
             const dataValidade = document.getElementById('dataValidade').value;
+            const token = localStorage.getItem('authToken');
 
             const response = await fetch('http://localhost:3000/medicamentos/adicionar', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({ nome, quantidade, dataValidade }),
             });
@@ -47,10 +50,26 @@
         // Função de busca
         document.getElementById('btnBuscar').addEventListener('click', async () => {
             const termo = document.getElementById('termoBusca').value;
-            const response = await fetch(`http://localhost:3000/medicamentos?termo=${termo}`);
-            const resultados = await response.json();
-            document.getElementById('resultadosBusca').textContent = JSON.stringify(resultados, null, 2);
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`http://localhost:3000/medicamentos?termo=${termo}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                const resultados = await response.json();
+                document.getElementById('resultadosBusca').textContent = JSON.stringify(resultados, null, 2);
+            } else {
+                alert('Erro ao buscar medicamentos. Verifique sua autenticação.')
+            }  
         });
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            window.location.href = 'index.html';
+        }
     </script>
 </body>
 </html>

@@ -4,7 +4,7 @@ const { Pool } = require('pg');
 const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
-    database: 'med_database',
+    database: 'medDatabase',
     password: '',
     port: 5432,
 });
@@ -28,21 +28,25 @@ const buscarMedicamentos = (termo) => {
 };
 
 // Função para buscar medicamentos do cliente
-const buscarMedicamentosCliente = async () => {
-    const res = await pool.query('SELECT * FROM medicamentos_cliente');
+const buscarMedicamentosCliente = async (userID) => {
+    const query = `SELECT * FROM medicamentos_cliente WHERE id_user = ($1);`;
+    const value = [userID];
+
+    const res = await pool.query(query, value);
     return res.rows;
 };
 
 // Função para adicionar medicamentos do cliente
-const adicionarMedicamentoCliente = async (nome, quantidade, dataValidade) => {
+const adicionarMedicamentoCliente = async (userID, nome, quantidade, dataValidade) => {
     const query = 
-        `INSERT INTO medicamentos_cliente (nome, quantidade, data_validade)
-        VALUES ($1, $2, $3) RETURNING *;`;
-    const values = [nome, quantidade, dataValidade];
+        `INSERT INTO medicamentos_cliente (id_user, nome, quantidade, data_validade)
+        VALUES ($1, $2, $3, $4) RETURNING *;`;
+    const values = [userID, nome, quantidade, dataValidade];
     const res = await pool.query(query, values);
     return res.rows[0];
 };
 
+// Isso é realmente necessário?
 // Função para buscar um medicamento do cliente pelo ID
 const buscarMedicamentoPorId = async (id) => {
     const res = await pool.query('SELECT * FROM medicamentos_cliente WHERE id = $1', [id]);
