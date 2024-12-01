@@ -27,36 +27,35 @@ const buscarMedicamentos = (termo) => {
     );
 };
 
-// Função para buscar medicamentos do cliente
-const buscarMedicamentosCliente = async (userID) => {
-    const query = `SELECT * FROM medicamentos_cliente WHERE id_user = ($1);`;
-    const value = [userID];
+// Função para buscar medicamentos do grupo
+const buscarMedicamentosGrupo = async (grupoID) => {
+    const query = `SELECT * FROM medicamentos_grupo WHERE id_grupo = ($1);`;
+    const value = [grupoID];
 
     const res = await pool.query(query, value);
     return res.rows;
 };
 
-// Função para adicionar medicamentos do cliente
-const adicionarMedicamentoCliente = async (userID, nome, quantidade, dataValidade) => {
+// Função para adicionar medicamentos do grupo
+const adicionarMedicamentoGrupo = async (grupoID, nome, quantidade, dataValidade) => {
     const query = 
-        `INSERT INTO medicamentos_cliente (id_user, nome, quantidade, data_validade)
+        `INSERT INTO medicamentos_grupo (id_grupo, nome, quantidade, data_validade)
         VALUES ($1, $2, $3, $4) RETURNING *;`;
-    const values = [userID, nome, quantidade, dataValidade];
+    const values = [grupoID, nome, quantidade, dataValidade];
     const res = await pool.query(query, values);
     return res.rows[0];
 };
 
-// Isso é realmente necessário?
-// Função para buscar um medicamento do cliente pelo ID
+// Função para buscar um medicamento do grupo pelo ID
 const buscarMedicamentoPorId = async (id) => {
-    const res = await pool.query('SELECT * FROM medicamentos_cliente WHERE id = $1', [id]);
+    const res = await pool.query('SELECT * FROM medicamentos_grupo WHERE id = $1', [id]);
     return res.rows[0];
 };
 
-// Função para editar medicamento do cliente
-const editarMedicamentoCliente = async (id, nome, quantidade, dataValidade) => {
+// Função para editar medicamento do grupo
+const editarMedicamentoGrupo = async (id, nome, quantidade, dataValidade) => {
     const query = 
-        `UPDATE medicamentos_cliente
+        `UPDATE medicamentos_grupo
         SET nome = $1, quantidade = $2, data_validade = $3
         WHERE id = $4 RETURNING *;`;
     const values = [nome, quantidade, dataValidade, id];
@@ -64,9 +63,9 @@ const editarMedicamentoCliente = async (id, nome, quantidade, dataValidade) => {
     return res.rows[0];
 };
 
-// Função para deletar medicamento do cliente
-const deletarMedicamentoCliente = async (id) => {
-    const query = 'DELETE FROM medicamentos_cliente WHERE id = $1 RETURNING *;';
+// Função para deletar medicamento do grupo
+const deletarMedicamentoGrupo = async (id) => {
+    const query = 'DELETE FROM medicamentos_grupo WHERE id = $1 RETURNING *;';
     const values = [id];
     const res = await pool.query(query, values);
     return res.rows[0];
@@ -74,9 +73,9 @@ const deletarMedicamentoCliente = async (id) => {
 
 module.exports = {
     buscarMedicamentos,
-    buscarMedicamentosCliente,
-    adicionarMedicamentoCliente,
+    buscarMedicamentosGrupo,
+    adicionarMedicamentoGrupo,
     buscarMedicamentoPorId,
-    editarMedicamentoCliente,
-    deletarMedicamentoCliente,
+    editarMedicamentoGrupo,
+    deletarMedicamentoGrupo,
 };

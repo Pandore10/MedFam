@@ -1,11 +1,12 @@
 const {
     buscarMedicamentos,
-    buscarMedicamentosCliente,
-    adicionarMedicamentoCliente,
+    buscarMedicamentosGrupo,
+    adicionarMedicamentoGrupo,
     buscarMedicamentoPorId,
-    editarMedicamentoCliente,
-    deletarMedicamentoCliente,
+    editarMedicamentoGrupo,
+    deletarMedicamentoGrupo,
 } = require('../models/medModel');
+const { getGrupoId } = require('../controllers/grupoController');
 
 // Endpoint para buscar medicamentos gerais
 exports.getMedicamentos = (req, res) => {
@@ -14,10 +15,9 @@ exports.getMedicamentos = (req, res) => {
     res.json(resultados);
 };
 
-// Endpoint para adicionar medicamento do cliente
+// Endpoint para adicionar medicamento do grupo
 exports.addMedicamento = async (req, res) => {
     const { nome, quantidade, dataValidade } = req.body;
-    const userID = req.user.userID;
 
     if (!nome || !quantidade || !dataValidade) {
         return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
@@ -29,27 +29,29 @@ exports.addMedicamento = async (req, res) => {
     }
 
     try {
-        const resultado = await adicionarMedicamentoCliente(userID, nome, quantidade, dataValidade);
-        res.status(201).json(resultado);
+        const grupoID = await getGrupoId(req, res);
+
+        await adicionarMedicamentoGrupo(grupoID, nome, quantidade, dataValidade);
+        res.status(201).json({ message: 'Medicamentos adicionados com sucesso.'});
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Erro ao adicionar medicamento do cliente.' });
     }
 };
 
-// Endpoint para buscar medicamentos do cliente
-exports.getMedicamentosCliente = async (req, res) => {
+// Endpoint para buscar medicamentos do grupo
+exports.getMedicamentosGrupo = async (req, res) => {
     try {
-        const userID = req.user.userID;
-        const medicamentos = await buscarMedicamentosCliente(userID);
+        const grupoID = await getGrupoId(req, res);
+        const medicamentos = await buscarMedicamentosGrupo(grupoID);
         res.json(medicamentos);
     } catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar medicamentos do cliente.' });
+        res.status(500).json({ error: 'Erro ao buscar medicamentos do grupo.' });
     }
 };
 
-// Endpoint para buscar medicamento do cliente por ID
-exports.getMedicamentoClientePorId = async (req, res) => {
+// Endpoint para buscar medicamento do grupo por ID
+exports.getMedicamentoGrupoPorId = async (req, res) => {
     const { id } = req.params;
     try {
         const medicamento = await buscarMedicamentoPorId(id);
@@ -62,17 +64,19 @@ exports.getMedicamentoClientePorId = async (req, res) => {
     }
 };
 
-// Endpoint para editar medicamento do cliente
-exports.updateMedicamentoCliente = async (req, res) => {
-    const { id } = req.params;
+// Endpoint para editar medicamento do grupo
+exports.updateMedicamentoGrupo = async (req, res) => {
     const { nome, quantidade, dataValidade } = req.body;
+    const { id } = req.params;
+
+    console.log({id, nome, quantidade, dataValidade});
 
     if (!nome || !quantidade || !dataValidade) {
         return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
     }
 
     try {
-        const medicamentoEditado = await editarMedicamentoCliente(id, nome, quantidade, dataValidade);
+        const medicamentoEditado = await editarMedicamentoGrupo(id, nome, quantidade, dataValidade);
         if (!medicamentoEditado) {
             return res.status(404).json({ error: 'Medicamento não encontrado.' });
         }
@@ -82,11 +86,11 @@ exports.updateMedicamentoCliente = async (req, res) => {
     }
 };
 
-// Endpoint para deletar medicamento do cliente
-exports.deleteMedicamentoCliente = async (req, res) => {
+// Endpoint para deletar medicamento do grupo
+exports.deleteMedicamentoGrupo = async (req, res) => {
     const { id } = req.params;
     try {
-        const medicamentoDeletado = await deletarMedicamentoCliente(id);
+        const medicamentoDeletado = await deletarMedicamentoGrupo(id);
         if (!medicamentoDeletado) {
             return res.status(404).json({ error: 'Medicamento não encontrado.' });
         }
@@ -102,7 +106,8 @@ exports.deleteMedicamentoCliente = async (req, res) => {
 exports.notificarEstoqueBaixo = async (req, res) => {
     try {
         // Verifica medicamentos com estoque baixo (menos de 3 unidades)
-        const medicamentosBaixoEstoque = await buscarMedicamentosCliente();
+        const grupoID = await getGrupoId(req, res);
+        const medicamentosBaixoEstoque = await buscarMedicamentosGrupo(grupoID);
         const medicamentosNotificados = medicamentosBaixoEstoque.filter(medicamento => medicamento.quantidade <= 3);
         
         // Envia a resposta com os medicamentos de estoque baixo
@@ -116,7 +121,8 @@ exports.notificarEstoqueBaixo = async (req, res) => {
 exports.notificarValidadeProxima = async (req, res) => {
     try {
         // Verifica medicamentos cuja validade está para vencer em 1 semana
-        const medicamentosValidadeProxima = await buscarMedicamentosCliente();
+        const grupoID = await getGrupoId(req, res);
+        const medicamentosValidadeProxima = await buscarMedicamentosGrupo(grupoID);
         const medicamentosNotificados = medicamentosValidadeProxima.filter(medicamento => {
             const validade = new Date(medicamento.data_validade);
             const hoje = new Date();
