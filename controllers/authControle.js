@@ -11,11 +11,11 @@ const pool = new Pool({
 });
 
 exports.registrar = async (req, res) => {
-    const {username, password} = req.body;
+    const {nome, email, password} = req.body;
 
     try {
         //Verifica se o usuário ja existe
-        const userQuery = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        const userQuery = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
 
         if (userQuery.rows.length > 0) {
             return res.status(400).json({ message: 'Usuário ja registrado.' });
@@ -23,7 +23,7 @@ exports.registrar = async (req, res) => {
 
         //Hash da senha e inserção no banco
         const hashedPassword = await bcrypt.hash(password, 10);
-        await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, hashedPassword]);
+        await pool.query('INSERT INTO users (nome, email, password) VALUES ($1, $2, $3)', [nome, email, hashedPassword]);
 
         res.status(201).json({ message: 'Usuário registrado com sucesso!' });
     } catch (error) {
@@ -33,16 +33,22 @@ exports.registrar = async (req, res) => {
 }
 
 exports.login = async (req, res) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
     try {
         //Busca o usuário no banco
-        const userQuery = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        const userQuery = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         const user = userQuery.rows[0];
 
         if (user && await bcrypt.compare(password, user.password)) {
+
+            const pertenceAGrupo = !!user.id_grupo;
+
             const token = jwt.sign({ userID: user.id }, 'seu segredo', { expiresIn: '1h' });
-            res.json({ token });
+            res.json({ 
+                token,
+                pertenceAGrupo
+             });
         } else {
             res.status(401).json({ message: 'Credencias invalidas' });
         }
@@ -69,4 +75,4 @@ exports.autenticarToken = (req, res, next) => {
         req.user = { userID: decoded.userID };
         next();
     });
-};
+}

@@ -2,72 +2,136 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Gerenciador de Produtos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: 96%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .form-container {
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Login</h1>
+    <div class="container">
+        <h1>MedFam</h1>
 
-    <!-- Formulário de Registro -->
-    <h2>Registrar</h2>
-    <form id="registerForm">
-        <input type="text" id="registerUsername" placeholder="Usuário" required>
-        <input type="password" id="registerPassword" placeholder="Senha" required>
-        <button type="submit">Registrar</button>
-    </form>
+        <!-- Formulário de Registro -->
+        <h2>Registrar</h2>
+        <form id="registerForm">
+            <input type="text" id="registerNome" placeholder="Nome" required>
+            <input type="email" id="registerEmail" placeholder="E-Mail" required>
+            <input type="password" id="registerPassword" placeholder="Senha" required>
+            <button type="submit">Registrar</button>
+        </form>
 
-    <!-- Formulário de Login -->
-    <h2>Login</h2>
-    <form id="loginForm">
-        <input type="text" id="loginUsername" placeholder="Usuário" required>
-        <input type="password" id="loginPassword" placeholder="Senha" required>
-        <button type="submit">Login</button>
-    </form>
+        <!-- Formulário de Login -->
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="email" id="loginEmail" placeholder="E-Mail" required>
+            <input type="password" id="loginPassword" placeholder="Senha" required>
+            <button type="submit">Entrar</button>
+        </form>
 
-    <script>
-        let authToken = null;
+        <script>
+            // Função de registrar novo usuário
+            document.getElementById('registerForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nome = document.getElementById('registerNome').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
 
-        // Função de Registro
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('registerUsername').value;
-            const password = document.getElementById('registerPassword').value;
+                const response = await fetch('http://localhost:3000/auth/registrar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, email, password })
+                });
 
-            const response = await fetch('http://localhost:3000/auth/registrar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
+                if (response.ok) {
+                    alert('Usuário registrado com sucesso!');
+                } else {
+                    alert('Erro ao registrar');
+                }
+            }); 
+
+            // Função de login
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+
+                const response = await fetch('http://localhost:3000/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.token;
+                    pertenceAGrupo = data.pertenceAGrupo;
+
+                    // Armazena o token no armazenamento local e redireciona
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('pertenceAGrupo', pertenceAGrupo);
+
+                    if (data.pertenceAGrupo) {
+                        window.location.href = 'grupo_gerenciamento.html';
+                    } else {
+                        window.location.href = 'grupos.html';
+                    }
+                    
+                } else {
+                    alert('Credenciais inválidas');
+                }
             });
-
-            if (response.ok) {
-                alert('Usuário registrado com sucesso!');
-            } else {
-                alert('Erro ao registrar');
-            }
-        });
-
-        // Função de Login
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
-
-            const response = await fetch('http://localhost:3000/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                authToken = data.token;
-
-                // Armazena o token no armazenamento local e redireciona
-                localStorage.setItem('authToken', authToken);
-                window.location.href = 'medicamentos_adicao.html';
-            } else {
-                alert('Credenciais inválidas');
-            }
-        });
-    </script>
+        </script>
+    </div>
 </body>
 </html>

@@ -6,25 +6,25 @@ const router = express.Router();
 // Rota para buscar medicamentos gerais
 router.get('/', medControle.getMedicamentos);
 
-// Rota para adicionar medicamento do cliente
+// Rota para adicionar medicamento do grupo
 router.post('/adicionar', autenticarToken, medControle.addMedicamento);
 
-// Rota para listar os medicamentos do cliente
-router.get('/cliente', autenticarToken, medControle.getMedicamentosCliente);
+// Rota para listar os medicamentos do grupo
+router.get('/grupo', autenticarToken, medControle.getMedicamentosGrupo);
 
-// Rota para buscar um medicamento do cliente por ID
-router.get('/cliente/:id', autenticarToken, medControle.getMedicamentoClientePorId);
+// Rota para buscar um medicamento do grupo por ID
+router.get('/grupo/:id', autenticarToken, medControle.getMedicamentoGrupoPorId);
 
-// Rota para editar medicamento do cliente
-router.put('/cliente/:id', autenticarToken, medControle.updateMedicamentoCliente);
+// Rota para editar medicamento do grupo
+router.put('/grupo/:id', autenticarToken, medControle.updateMedicamentoGrupo);
 
-// Rota para deletar medicamento do cliente
-router.delete('/cliente/:id', autenticarToken, medControle.deleteMedicamentoCliente);
+// Rota para deletar medicamento do grupo
+router.delete('/grupo/:id', autenticarToken, medControle.deleteMedicamentoGrupo);
 
 // Rota para notificar sobre medicamentos com estoque baixo
-router.get('/notificacao/estoque', medControle.notificarEstoqueBaixo);
+router.get('/notificacao/estoque', autenticarToken, medControle.notificarEstoqueBaixo);
 
 // Rota para notificar sobre medicamentos com validade próxima
-router.get('/notificacao/validade', medControle.notificarValidadeProxima);
+router.get('/notificacao/validade', autenticarToken, medControle.notificarValidadeProxima);
 
 module.exports = router;

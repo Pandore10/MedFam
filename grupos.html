@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar ou Entrar em um Grupo Residencial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            font-size: 14px;
+            color: #555;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+        }
+
+        .success {
+            color: green;
+            text-align: center;
+        }
+
+        .form-container {
+            margin-bottom: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Criar ou Entrar em um Grupo Residencial</h1>
+
+        <!-- Formulário para criar grupo -->
+        <div class="form-container">
+            <h2>Criar Grupo</h2>
+            <form id="grupoForm">
+                <label for="nome">Nome do Grupo (opcional)</label>
+                <input type="text" id="nome" name="nome" placeholder="Digite o nome do grupo...">
+                <button type="submit">Criar Grupo</button>
+            </form>
+        </div>
+
+        <!-- Formulário para entrar em grupo -->
+        <div class="form-container">
+            <h2>Entrar em um Grupo</h2>
+            <form id="entrarForm">
+                <label for="codigo">Código do Grupo</label>
+                <input type="text" id="codigo" name="codigo" placeholder="Digite o código do grupo...">
+                <button type="submit">Entrar no Grupo</button>
+            </form>
+        </div>
+
+        <p id="mensagem" class="error"></p>
+    </div>
+
+    <script>
+        // Função para criar grupo
+        document.getElementById('grupoForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Evita o comportamento padrão do formulário
+
+            const nome = document.getElementById('nome').value.trim();
+            const authToken = localStorage.getItem('authToken'); // Obtém o token do localStorage
+
+            if (!authToken) {
+                document.getElementById('mensagem').textContent = "Você precisa estar logado para criar um grupo.";
+                document.getElementById('mensagem').classList.add('error');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/grupos/criar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ nome })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('mensagem').textContent = `Grupo '${data.grupo.nome}' criado com sucesso!`;
+                    document.getElementById('mensagem').classList.add('success');
+                    document.getElementById('grupoForm').reset();
+                    window.location.href = 'grupo_gerenciamento.html';
+                    localStorage.setItem('pertenceAGrupo', data.pertenceAGrupo);
+                } else {
+                    document.getElementById('mensagem').textContent = data.error || 'Erro ao criar grupo.';
+                    document.getElementById('mensagem').classList.add('error');
+                }
+            } catch (error) {
+                document.getElementById('mensagem').textContent = "Erro ao tentar criar o grupo. Tente novamente.";
+                document.getElementById('mensagem').classList.add('error');
+            }
+        });
+
+        // Função para entrar em grupo
+        document.getElementById('entrarForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Evita o comportamento padrão do formulário
+
+            const codigo = document.getElementById('codigo').value.trim();
+            const authToken = localStorage.getItem('authToken'); // Obtém o token do localStorage
+
+            if (!authToken) {
+                document.getElementById('mensagem').textContent = "Você precisa estar logado para entrar em um grupo.";
+                document.getElementById('mensagem').classList.add('error');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/grupos/entrar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ codigo })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('mensagem').textContent = `Você entrou no grupo com sucesso!`;
+                    document.getElementById('mensagem').classList.add('success');
+                    document.getElementById('entrarForm').reset();
+                    window.location.href = 'grupo_gerenciamento.html';
+                    localStorage.setItem('pertenceAGrupo', data.pertenceAGrupo);
+                } else {
+                    document.getElementById('mensagem').textContent = data.error || 'Erro ao tentar entrar no grupo.';
+                    document.getElementById('mensagem').classList.add('error');
+                }
+            } catch (error) {
+                document.getElementById('mensagem').textContent = "Erro ao tentar entrar no grupo. Tente novamente.";
+                document.getElementById('mensagem').classList.add('error');
+            }
+        });
+    </script>
+</body>
+</html>

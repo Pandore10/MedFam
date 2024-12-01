@@ -4,26 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciamento de Medicamentos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        h1 {
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            max-width: 400px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #5c6bc0;
+            color: white;
+            border: none;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #3f51b5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .notificacao {
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .notificacao strong {
+            color: #e57373;
+        }
+
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons button {
+            width: 48%;
+        }
+    </style>
 </head>
-<body>
-    <button onclick="logout()">Logout</button>
-    <h1>Adicionar Medicamento</h1>
-    <form id="medForm">
-        <input type="text" id="nome" placeholder="Nome do Medicamento" required>
-        <input type="number" id="quantidade" placeholder="Quantidade" min="1" required>
-        <input type="text" id="dataValidade" placeholder="Data de Validade (DD-MM-AAAA)" required>
-        <button type="submit">Adicionar</button>
-    </form>
+<body onload="verificarNotificacoes()">
+    <div class="container">
+        <div class="nav-buttons">
+            <button onclick="logout()">Logout</button>
+            <button onclick="grupos()">Grupos</button>
+        </div>
+        
+        <h1>Adicionar Medicamento</h1>
+        <form id="medForm">
+            <input type="text" id="nome" placeholder="Nome do Medicamento" required>
+            <input type="number" id="quantidade" placeholder="Quantidade" min="1" required>
+            <input type="text" id="dataValidade" placeholder="Data de Validade (DD-MM-AAAA)" required>
+            <button type="submit">Adicionar</button>
+        </form>
 
-    <h1>Buscar Medicamento Geral</h1>
-    <input type="text" id="termoBusca" placeholder="Digite o nome do medicamento">
-    <button id="btnBuscar">Buscar</button>
-    
-    <h2>Resultados da Busca:</h2>
-    <pre id="resultadosBusca"></pre>
+        <h1>Buscar Medicamento Geral</h1>
+        <div>
+            <input type="text" id="termoBusca" placeholder="Digite o nome do medicamento">
+            <button id="btnBuscar">Buscar</button>
+        </div>
 
-    <h1>Medicamentos do Cliente</h1>
-    <a href="medicamentos_cliente.html">Gerenciar Medicamentos do Cliente</a>
+        <h2>Resultados da Busca:</h2>
+        <pre id="resultadosBusca"></pre>
+
+        <h1>Medicamentos do Cliente</h1>
+        <a href="medicamentos_cliente.html">Gerenciar Medicamentos do Cliente</a>
+
+        <h1>Notificações</h1>
+        <div id="notificacoes"></div>
+    </div>
 
     <script>
         // Envio do formulário para adicionar medicamento
@@ -66,9 +164,92 @@
             }  
         });
 
+        // Função de logout
         function logout() {
             localStorage.removeItem('authToken');
             window.location.href = 'index.html';
+        }
+
+        function grupos() {
+            window.location.href = 'grupos.html';
+        }
+
+        async function verificarNotificacoes() {
+            try {
+                console.log('Iniciando a verificação de notificações...');
+                // Faz a requisição para o endpoint do back-end de estoque baixo
+                const responseEstoque = await fetch('http://localhost:3000/medicamentos/notificacao/estoque', {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('authToken')}`, // Troque pela forma como você armazena o token
+                    },
+                });
+
+                if (!responseEstoque.ok) {
+                    console.error('Erro ao verificar notificações de estoque:', responseEstoque.statusText);
+                }
+
+                const dataEstoque = await responseEstoque.json();
+                console.log('Notificações de Estoque:', dataEstoque);
+
+                // Faz a requisição para o endpoint de validade próxima
+                const responseValidade = await fetch('http://localhost:3000/medicamentos/notificacao/validade', {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('authToken')}`, // Troque pela forma como você armazena o token
+                    },
+                });
+
+                if (!responseValidade.ok) {
+                    console.error('Erro ao verificar notificações de validade:', responseValidade.statusText);
+                }
+
+                const dataValidade = await responseValidade.json();
+                console.log('Notificações de Validade:', dataValidade);
+
+                // Exibe as notificações na interface
+                const notificacoesDiv = document.getElementById('notificacoes');
+                notificacoesDiv.innerHTML = '';
+
+                // Exibe notificações de estoque baixo
+                if (dataEstoque.length > 0) {
+                    notificacoesDiv.innerHTML += `<div class="notificacao"><strong>Atenção:</strong> Há medicamentos com estoque baixo!</div>`;
+                    dataEstoque.forEach(med => {
+                        notificacoesDiv.innerHTML += `
+                            <div class="notificacao">Medicamento: ${med.nome} | Quantidade: ${med.quantidade}</div>
+                        `;
+                    });
+                } else {
+                    notificacoesDiv.innerHTML += '<div class="notificacao">Estoque de medicamentos está OK.</div>';
+                }
+
+                // Exibe notificações de validade próxima
+                if (dataValidade.length > 0) {
+                    notificacoesDiv.innerHTML += `<div class="notificacao"><strong>Atenção:</strong> Alguns medicamentos estão com validade próxima!</div>`;
+                    dataValidade.forEach(med => {
+                        const validade = new Date(med.data_validade); // A data de validade do medicamento
+                        const hoje = new Date(); // A data atual
+                        const diferencaEmMillis = validade - hoje; // Diferença em milissegundos
+                        const diferencaEmDias = Math.ceil(diferencaEmMillis / (1000 * 3600 * 24)); // Converter para dias
+
+                        if (diferencaEmDias <= 7 && diferencaEmDias >= 0) { // Verifica se a validade está dentro de 7 dias
+                            notificacoesDiv.innerHTML += `
+                                <div class="notificacao">Medicamento: ${med.nome} | Data de validade: ${med.data_validade}</div>
+                            `;
+                        }
+                    });
+                } else {
+                    notificacoesDiv.innerHTML += '<div class="notificacao">Validade dos medicamentos está OK.</div>';
+                }
+
+                // Caso não haja notificações
+                if (dataEstoque.length === 0 && dataValidade.length === 0) {
+                    notificacoesDiv.innerHTML = '<div class="notificacao">Nenhuma notificação pendente.</div>';
+                }
+
+            } catch (error) {
+                console.error('Erro ao buscar notificações:', error);
+            }
         }
     </script>
 </body>
